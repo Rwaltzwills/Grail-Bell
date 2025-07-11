@@ -1,5 +1,5 @@
 <head>
-<script src="grailbell.css"></script>
+<link rel="stylesheet" href="grailbell.css" />
 <script src="grailbell.js"></script>
 </head>
 <body>
@@ -12,11 +12,15 @@
         </div>
         <div id="Transcript">
             <span>Note: Only handles SRT files currently</span>
-            <table id="Transcript-table">
-                <tr>
-                    <th <!-- Controls --></th></th><th>Time</th><th>Speaker</th><th <!-- Subtitle line--></th></th>
-                </tr>
-            </table>
+           
+            <div class="scrollable">
+                <table id="Transcript-table">
+                    <tr>
+                        <th <!-- Controls --></th></th><th>Time</th><th>Speaker</th><th <!-- Subtitle line--></th></th>
+                    </tr>
+                </table>
+            </div>
+
             <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
             <button onclick="transcript.save()" id="Transcript-save">Save</button>
         </div>

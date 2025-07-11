@@ -31,22 +31,33 @@ transcript = {
     
     Transcript_line: class {
         constructor(index, timestamp, line){
-            self.index = index;
-            self.line = line;
+            this.index = index;
+            this.line = line;
+            this.speaker = ""; //Enable speaker tags later
 
-            self.timestamp = timestamp;
-            self.startTime = this.convertTime(timestamp.substr(0,12));
-            self.endTime = this.convertTime(timestamp.substr(17));
+            this.timestamp = timestamp;
+            this.startTime = this.convertTime(timestamp.substr(0,12));
+            this.endTime = this.convertTime(timestamp.substr(17));
         }
 
         convertTime(time){
             /*Converts SRT text time into an int of seconds*/
             var z = 0;
-            z = z + parseInt(time.substr(0,1))*60^2; //Add hours
-            z = z + parseInt(time.substr(3,4))*60; //Add minutes
-            z = z + parseInt(time.substr(6,7)); //Add seconds
-            z = z + parseInt(time.substr(9))*.001 //Add milliseconds
+            z = z + parseInt(time.slice(0,1))*60^2; //Add hours
+            z = z + parseInt(time.slice(3,4))*60;   //Add minutes
+            z = z + parseInt(time.slice(6,7));      //Add seconds
+            z = z + parseInt(time.slice(9))*.001    //Add milliseconds
+            if(isNaN(z)){
+                throw new transcript.ImportError();
+            }
             return z;
+        }
+    },
+    
+    ImportError: class extends Error{
+        constructor(message= "", ...args){
+            super(message, ...args);
+            this.message = message + "Error occured while importing transcript file."
         }
     },
 
@@ -59,7 +70,29 @@ transcript = {
         reader.addEventListener('load',
             () => {
                 this.importSRT(reader.result);
+
+                table = document.getElementById('Transcript-table');
+                for (let i = 0; i < this.current.length; i++){
+                    r = document.createElement('tr');
+                    c = document.createElement('td'); //Controls, will be empty
+                    t = document.createElement('td'); //Time
+                    s = document.createElement('td'); //Speaker
+                    l = document.createElement('td'); //Line
+
+                    c.appendChild(document.createTextNode(''));
+                    t.appendChild(document.createTextNode(this.current[i].timestamp));
+                    s.appendChild(document.createTextNode(this.current[i].speaker));
+                    l.appendChild(document.createTextNode(this.current[i].line));
+
+                    r.appendChild(c);
+                    r.appendChild(t);
+                    r.appendChild(s);
+                    r.appendChild(l);
+
+                    table.appendChild(r);
+                }
             })
+
         reader.readAsText(files[0]);
     },
 
@@ -69,11 +102,6 @@ transcript = {
 
     importSRT: function (SRT) {
         const lines = SRT.split('\n');
-        //Write SRT ingestion here
-        //0 is index
-        //1 is timestamp text
-        //Everything else is line until a blank line
-        //Remove all lines up to this point from SRT, start loop once more
         while(lines.length){
             var i = lines[0];
             if(isNaN(parseInt(i))){
