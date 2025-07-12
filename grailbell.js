@@ -5,8 +5,9 @@
 --- Speaker functionalities
 ---- Speaker find and replace
 ---- Identify speaker from imported SRT
---- Scroll to current position in video
----- Unless scroll bar has been manually moved, or focus is in textbox
+---  Handle when scrolling needs to be paused
+---- Scroll bar has been manually moved, or focus is in textbox
+--- Insert new lines
 -- Video
 --- Can skip to time by clicking on a line
 --- Backtrack / Skip 5s at a time with keyboard command
@@ -15,6 +16,7 @@
 -- Transcript
 --- Can mark line as error
 --- Can mark line as no error
+--- Can move indexes up and down
 --- Keeps diff
 --- Keeps list of running words that have been changed, alerts?
 - Video
@@ -33,6 +35,8 @@ function afterLoad() {
 
 transcript = {
     current: [],              //current transcript
+    old_lines: [],
+    new_lines: [],
     scrolling: true,          //Is the containing div currently scrolling
     manually_scrolled: false, //Did the user manually scroll the div up
     transcript_div: null,     //Reference to the transcript div, will be set on load()
@@ -43,7 +47,7 @@ transcript = {
     
     Transcript_line: class {
         constructor(index, timestamp, line){
-            this.index = index;
+            this.index = parseInt(index);
             this.line = line;
             this.speaker = ""; //TO-DO: Enable speaker tags later
 
@@ -118,6 +122,8 @@ transcript = {
             () => {
                 this.importSRT(reader.result);
 
+                //TO-DO: Add event hook for video time updates
+
                 table = document.getElementById('Transcript-table');
                 for (let ind = 0; ind < this.current.length; ind++){
                     let r = document.createElement('tr');
@@ -126,6 +132,8 @@ transcript = {
                     let t = document.createElement('td'); //Time
                     let s = document.createElement('td'); //Speaker
                     let l = document.createElement('td'); //Line
+
+                    r.dataset.index     = this.current[ind].index;
 
                     t.dataset.startTime = this.current[ind].startTime;
                     t.dataset.endTime   = this.current[ind].endTime;
@@ -201,19 +209,47 @@ transcript = {
             };
 
             this.current.push(new this.Transcript_line(i,t,s));
+            this.new_lines.push(this.current.at(-1));
             lines.splice(0,index+1);
         }
     },
 
     scrollTo: function (tr){
-        tr.scrollIntoView(); //TO-DO: Custom logic to scroll into center of table, not top.
+        tr.scrollIntoView({ behavior: "smooth"}); 
+        //TO-DO: Custom logic to scroll into center of table, not top.
     },
 
     highlightRow: function (tr){
         tr.toggle(this.SYNCHIGHLIGHT);
     },
-    //TO-DO: Actually handle video signal
 
+    //TO-DO: Make sure we sort current[] on load()
+    handleVideoUpdate: function (time){
+        for(let i = 0; i < this.new_lines.length;){
+            if(time < parseInt(this.new_lines[i].startTime)) break;
+
+            tr = document.querySelector('tr[data-index="'.concat(this.new_lines[i].index,'"]'));
+
+            if(time < parseInt(this.new_lines[i].endTime)){
+                tr.classList.add(this.SYNCHIGHLIGHT);
+                if(this.scrolling){
+                    this.scrollTo(tr);
+                }
+                i++;
+            }
+            else{
+                tr.classList.remove(this.SYNCHIGHLIGHT);
+                this.old_lines.push(this.new_lines[i]);
+                this.new_lines.splice(i,1);
+            }
+            
+        }
+    },
+
+    handleScrolling: function (){
+        return true;
+        //TO-DO: Handle manual scrolling
+    }
 };
 
 video = {};
