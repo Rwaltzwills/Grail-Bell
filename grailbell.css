@@ -10,11 +10,28 @@
 
 }
 
-#Transcript #Transcript-table{
-    
-}*/
+*/
+#Transcript-table {
+    border-collapse: collapse;
+}
+
+#Transcript-table > tr > td {
+    border: 1px solid black;
+}
 
 div.scrollable {
     max-height:55vh;
     overflow-y:auto;
+    border: 1px solid black;
+
+}
+
+div.centerflex {
+    display: flex;
+    justify-content: center;
+}
+
+.controlGrid {
+    display:flex;
+    align-items: center;
 }

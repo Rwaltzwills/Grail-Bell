@@ -1,19 +1,24 @@
 /*
- * Grail Bell
-- Line by line
--- Can click on a line to edit it
--- When typing not in a line, produce new line
--- Split up into timestamp - speaker - line - controls
--- Can mark line as error
--- Can mark line as no error
--- Speaker name replacement
--- Keeps diff
--- Keeps list of running words that have been changed, alerts?
--- Download new SRT
+ * Grail Bell TO-DO (some TO-DOs scattered througout as well, ctrl+f)
+- Minimum
+-- Transcript
+--- Speaker functionalities
+---- Speaker find and replace
+---- Identify speaker from imported SRT
+--- Scroll to current position in video
+---- Unless scroll bar has been manually moved, or focus is in textbox
+-- Video
+--- Can skip to time by clicking on a line
+--- Backtrack / Skip 5s at a time with keyboard command
+***
+- Nice to Have
+-- Transcript
+--- Can mark line as error
+--- Can mark line as no error
+--- Keeps diff
+--- Keeps list of running words that have been changed, alerts?
 - Video
--- Can skip to time by clicking on a line
 -- Skip to only errors
--- Backtrack / Skip 5s at a time with keyboard command
 -- Can edit keyboard commands
  */
 
@@ -28,6 +33,8 @@ function afterLoad() {
 
 transcript = {
     current: [],
+
+    CONTROLGRID: 'controlGrid',
     
     Transcript_line: class {
         constructor(index, timestamp, line){
@@ -35,12 +42,17 @@ transcript = {
             this.line = line;
             this.speaker = ""; //Enable speaker tags later
 
-            this.timestamp = timestamp;
-            this.startTime = this.convertTime(timestamp.substr(0,12));
-            this.endTime = this.convertTime(timestamp.substr(17));
+            this.changeTimestamp(timestamp);
         }
 
-        convertTime(time){
+        changeTimestamp(timestamp){
+            //Configured for SRT
+            this.timestamp = timestamp;
+            this.startTime = this._convertTime(timestamp.substr(0,12));
+            this.endTime = this._convertTime(timestamp.substr(17));
+        }
+
+        _convertTime(time){
             /*Converts SRT text time into an int of seconds*/
             var z = 0;
             z = z + parseInt(time.slice(0,1))*60^2; //Add hours
@@ -52,6 +64,17 @@ transcript = {
             }
             return z;
         }
+
+        produceSRTPassage(){
+            let s = "";
+            s += this.index.trimEnd() + "\r";
+            s += this.timestamp.trimEnd() + "\r";
+            s += this.speaker + this.line.trimEnd() + "\r"; 
+            //Since the speaker line isn't in the SRT standard, 
+            //shouldn't have any \r on the end.
+
+            return s;
+        }
     },
     
     ImportError: class extends Error{
@@ -61,30 +84,74 @@ transcript = {
         }
     },
 
+    timestamp_clicked: new Event('timestamp clicked'),
+
     init: function () {
         
     },
 
     load: function (e, files) {
+
+        function getControls(){
+            //TO-DO: Make this more robust
+            var controls = document.createElement('div');
+            controls.style = this.CONTROLGRID;
+            var errorControls = document.createElement('div');
+            errorControls.innerHTML = "<a href='javascript:alert(\"okay\")'>ok</a> <a href='javascript:alert(\"no\")'>no</a>";
+            controls.append(errorControls);
+            var movingControls = document.createElement('div');
+            movingControls.innerHTML = "<a href='javascript:alert(\"up\")'>up</a> <a href='javascript:alert(\"down\")'>down</a>";
+            controls.append(movingControls);
+            return controls;
+        }
+
         reader = new FileReader();
         reader.addEventListener('load',
             () => {
                 this.importSRT(reader.result);
 
                 table = document.getElementById('Transcript-table');
-                for (let i = 0; i < this.current.length; i++){
-                    r = document.createElement('tr');
-                    c = document.createElement('td'); //Controls, will be empty
-                    t = document.createElement('td'); //Time
-                    s = document.createElement('td'); //Speaker
-                    l = document.createElement('td'); //Line
+                for (let ind = 0; ind < this.current.length; ind++){
+                    let r = document.createElement('tr');
+                    let c = document.createElement('td'); //Controls
+                    let i = document.createElement('td'); //Index
+                    let t = document.createElement('td'); //Time
+                    let s = document.createElement('td'); //Speaker
+                    let l = document.createElement('td'); //Line
 
-                    c.appendChild(document.createTextNode(''));
-                    t.appendChild(document.createTextNode(this.current[i].timestamp));
-                    s.appendChild(document.createTextNode(this.current[i].speaker));
-                    l.appendChild(document.createTextNode(this.current[i].line));
+                    t.dataset.startTime = this.current[ind].startTime;
+                    t.dataset.endTime   = this.current[ind].endTime;
+
+                    t.onclick = (e) => {dispatchEvent(this.timestamp_clicked);};
+                    //TO-DO: Add controls to each line and their associated actions
+
+                    
+                    let t_input = document.createElement("input");
+                    t_input.setAttribute('type','text');
+                    t_input.setAttribute('disabled', '');
+                    t_input.value = this.current[ind].timestamp;
+                    t_input.onchange = (e) => {this.current[ind].changeTimestamp(t_input.value);};
+
+                    
+                    let s_input = document.createElement("input");
+                    s_input.setAttribute('type','text');
+                    s_input.value = this.current[ind].speaker;
+                    s_input.onchange = (e) => {this.current[ind].speaker = s_input.value;};
+
+                    let l_input = document.createElement("input");
+                    l_input.setAttribute('type','text');
+                    l_input.value = this.current[ind].line;
+                    l_input.onchange = (e) => {this.current[ind].line = l_input.value;};
+
+
+                    c.appendChild(getControls());
+                    i.appendChild(document.createTextNode(this.current[ind].index));
+                    t.appendChild(t_input);
+                    s.appendChild(s_input);
+                    l.appendChild(l_input);
 
                     r.appendChild(c);
+                    r.appendChild(i);
                     r.appendChild(t);
                     r.appendChild(s);
                     r.appendChild(l);
@@ -97,7 +164,15 @@ transcript = {
     },
 
     save: function () {
+        let res = "";
+        this.current.forEach(line => {
+            res += line.produceSRTPassage();
+        });
 
+        let dl = document.createElement('a');
+        dl.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(res))
+        dl.setAttribute('download', "result.srt")
+        dl.click()
     },
 
     importSRT: function (SRT) {
@@ -105,7 +180,7 @@ transcript = {
         while(lines.length){
             var i = lines[0];
             if(isNaN(parseInt(i))){
-                console.log("Non-integer reached, eof assumed");
+                debugLog("Non-integer reached, eof assumed");
                 break;
                 //Can probably make this a little bit more robust
             }
@@ -129,5 +204,10 @@ options = {};
 
 network = {};
 
+//Debug section
+var debug_mode = true;
 
+function debugLog(msg){
+    if (debug_mode) console.log(msg);
+}
 

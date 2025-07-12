@@ -13,16 +13,19 @@
         <div id="Transcript">
             <span>Note: Only handles SRT files currently</span>
            
-            <div class="scrollable">
+            <div class="scrollable centerflex">
                 <table id="Transcript-table">
-                    <tr>
-                        <th <!-- Controls --></th></th><th>Time</th><th>Speaker</th><th <!-- Subtitle line--></th></th>
-                    </tr>
+                    <thead>
+                        <tr>
+                            <th <!-- Controls --></th><th <!-- Index --></th></th><th>Time</th><th>Speaker</th><th <!-- Subtitle line--></th></th>
+                        </tr>
+                    </thead>
                 </table>
             </div>
-
-            <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
-            <button onclick="transcript.save()" id="Transcript-save">Save</button>
-        </div>
+            <div class="centerflex">
+                <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
+                <button onclick="transcript.save()" id="Transcript-save">Save</button>
+            </div>
+         </div>
     </div>
 </body>
