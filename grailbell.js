@@ -32,15 +32,20 @@ function afterLoad() {
 }
 
 transcript = {
-    current: [],
+    current: [],              //current transcript
+    scrolling: true,          //Is the containing div currently scrolling
+    manually_scrolled: false, //Did the user manually scroll the div up
+    transcript_div: null,     //Reference to the transcript div, will be set on load()
+
 
     CONTROLGRID: 'controlGrid',
+    SYNCHIGHLIGHT: 'syncHighlight',
     
     Transcript_line: class {
         constructor(index, timestamp, line){
             this.index = index;
             this.line = line;
-            this.speaker = ""; //Enable speaker tags later
+            this.speaker = ""; //TO-DO: Enable speaker tags later
 
             this.changeTimestamp(timestamp);
         }
@@ -54,6 +59,7 @@ transcript = {
 
         _convertTime(time){
             /*Converts SRT text time into an int of seconds*/
+            //TO-DO: Bug here with calculations
             var z = 0;
             z = z + parseInt(time.slice(0,1))*60^2; //Add hours
             z = z + parseInt(time.slice(3,4))*60;   //Add minutes
@@ -70,6 +76,7 @@ transcript = {
             s += this.index.trimEnd() + "\r";
             s += this.timestamp.trimEnd() + "\r";
             s += this.speaker + this.line.trimEnd() + "\r"; 
+            s += "\r";
             //Since the speaker line isn't in the SRT standard, 
             //shouldn't have any \r on the end.
 
@@ -91,6 +98,7 @@ transcript = {
     },
 
     load: function (e, files) {
+        this.transcript_div = document.getElementById("Transcript-div");
 
         function getControls(){
             //TO-DO: Make this more robust
@@ -195,7 +203,17 @@ transcript = {
             this.current.push(new this.Transcript_line(i,t,s));
             lines.splice(0,index+1);
         }
-    }
+    },
+
+    scrollTo: function (tr){
+        tr.scrollIntoView(); //TO-DO: Custom logic to scroll into center of table, not top.
+    },
+
+    highlightRow: function (tr){
+        tr.toggle(this.SYNCHIGHLIGHT);
+    },
+    //TO-DO: Actually handle video signal
+
 };
 
 video = {};

@@ -35,3 +35,7 @@ div.centerflex {
     display:flex;
     align-items: center;
 }
+
+.syncHighlight {
+    background-color: yellow;
+}
