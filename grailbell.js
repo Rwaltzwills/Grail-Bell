@@ -7,7 +7,6 @@
 ---- Identify speaker from imported SRT
 ---  Handle when scrolling needs to be paused
 ---- Scroll bar has been manually moved, or focus is in textbox
---- Insert new lines
 -- Video
 --- Can skip to time by clicking on a line
 --- Backtrack / Skip 5s at a time with keyboard command
@@ -39,7 +38,7 @@ transcript = {
     new_lines: [],
     scrolling: true,          //Is the containing div currently scrolling
     manually_scrolled: false, //Did the user manually scroll the div up
-    transcript_div: null,     //Reference to the transcript div, will be set on load()
+    transcript_div: null,     //Reference to the transcript div, will be set on init()
 
 
     CONTROLGRID: 'controlGrid',
@@ -98,25 +97,14 @@ transcript = {
     timestamp_clicked: new Event('timestamp clicked'),
 
     init: function () {
-        
+        this.transcript_div = document.getElementById("Transcript-div");
+        this.transcript_div.addEventListener("scroll", (e) =>{
+            this.handleScrolling(e);
+        });
+        debugLog('init');
     },
 
     load: function (e, files) {
-        this.transcript_div = document.getElementById("Transcript-div");
-
-        function getControls(){
-            //TO-DO: Make this more robust
-            var controls = document.createElement('div');
-            controls.style = this.CONTROLGRID;
-            var errorControls = document.createElement('div');
-            errorControls.innerHTML = "<a href='javascript:alert(\"okay\")'>ok</a> <a href='javascript:alert(\"no\")'>no</a>";
-            controls.append(errorControls);
-            var movingControls = document.createElement('div');
-            movingControls.innerHTML = "<a href='javascript:alert(\"up\")'>up</a> <a href='javascript:alert(\"down\")'>down</a>";
-            controls.append(movingControls);
-            return controls;
-        }
-
         reader = new FileReader();
         reader.addEventListener('load',
             () => {
@@ -126,52 +114,7 @@ transcript = {
 
                 table = document.getElementById('Transcript-table');
                 for (let ind = 0; ind < this.current.length; ind++){
-                    let r = document.createElement('tr');
-                    let c = document.createElement('td'); //Controls
-                    let i = document.createElement('td'); //Index
-                    let t = document.createElement('td'); //Time
-                    let s = document.createElement('td'); //Speaker
-                    let l = document.createElement('td'); //Line
-
-                    r.dataset.index     = this.current[ind].index;
-
-                    t.dataset.startTime = this.current[ind].startTime;
-                    t.dataset.endTime   = this.current[ind].endTime;
-
-                    t.onclick = (e) => {dispatchEvent(this.timestamp_clicked);};
-                    //TO-DO: Add controls to each line and their associated actions
-
-                    
-                    let t_input = document.createElement("input");
-                    t_input.setAttribute('type','text');
-                    t_input.setAttribute('disabled', '');
-                    t_input.value = this.current[ind].timestamp;
-                    t_input.onchange = (e) => {this.current[ind].changeTimestamp(t_input.value);};
-
-                    
-                    let s_input = document.createElement("input");
-                    s_input.setAttribute('type','text');
-                    s_input.value = this.current[ind].speaker;
-                    s_input.onchange = (e) => {this.current[ind].speaker = s_input.value;};
-
-                    let l_input = document.createElement("input");
-                    l_input.setAttribute('type','text');
-                    l_input.value = this.current[ind].line;
-                    l_input.onchange = (e) => {this.current[ind].line = l_input.value;};
-
-
-                    c.appendChild(getControls());
-                    i.appendChild(document.createTextNode(this.current[ind].index));
-                    t.appendChild(t_input);
-                    s.appendChild(s_input);
-                    l.appendChild(l_input);
-
-                    r.appendChild(c);
-                    r.appendChild(i);
-                    r.appendChild(t);
-                    r.appendChild(s);
-                    r.appendChild(l);
-
+                    let r = this.lineToTR(this.current[ind]);
                     table.appendChild(r);
                 }
             })
@@ -234,6 +177,10 @@ transcript = {
                 tr.classList.add(this.SYNCHIGHLIGHT);
                 if(this.scrolling){
                     this.scrollTo(tr);
+                    this.scrolling = true;
+                    //Should prevent autoscrolling deactivating itself, as
+                    //this.scrolling is set to false in the scroll event handler.
+                    //nvm this doesn't work TO-DO:
                 }
                 i++;
             }
@@ -246,9 +193,105 @@ transcript = {
         }
     },
 
-    handleScrolling: function (){
-        return true;
+    handleScrolling: function (e){
+        console.log("Scrollbar position: ".concat(e.target.scrollTop + e.target.clientHeight, " Bottom position: ", e.target.scrollHeight));
+        this.scrolling = false;
         //TO-DO: Handle manual scrolling
+    },
+
+    addNewLine: function(tr_before){
+        let before_index = parseInt(tr_before.dataset.index);
+        let new_line = new this.Transcript_line(before_index+1,"",""); 
+        //TO-DO: Figure default timestamp? Probably something convenient we can put here
+        let new_tr = this.lineToTR(new_line);
+        tr_before.insertAdjacenetElement('afterEnd',new_tr);
+        this.current.splice(before_index,0,new_line);
+        this.current.slice(before_index+1).forEach(line => {
+            line_tr = document.querySelector('tr[data-index="'.concat(line.index,'"]'));
+            line.index++;
+            line_tr.dataset.index = line.index;
+            line_tr.children[1].innerHTML = line.index; 
+            //Child of index 1 is going to be the index td
+        });
+    },
+
+    removeLine: function(tr){
+        let del_index = parseInt(tr.dataset.index) - 1;
+        tr.remove();
+
+        this.current.splice(del_index,1);
+        this.current.slice(del_index).forEach(line => {
+            line_tr = document.querySelector('tr[data-index="'.concat(line.index,'"]'));
+            line.index--;
+            line_tr.dataset.index = line.index;
+            line_tr.children[1].innerHTML = line.index; 
+            //Child of index 1 is going to be the index td
+        });
+
+        //TO-DO: Handle new and old line arrays
+    },
+
+    lineToTR: function(line){
+        let r = document.createElement('tr');
+        let c = document.createElement('td'); //Controls
+        let i = document.createElement('td'); //Index
+        let t = document.createElement('td'); //Time
+        let s = document.createElement('td'); //Speaker
+        let l = document.createElement('td'); //Line
+
+        r.dataset.index     = line.index;
+
+        t.dataset.startTime = line.startTime;
+        t.dataset.endTime   = line.endTime;
+
+        t.onclick = (e) => {dispatchEvent(this.timestamp_clicked);};
+        //TO-DO: Add controls to each line and their associated actions
+
+        
+        let t_input = document.createElement("input");
+        t_input.setAttribute('type','text');
+        t_input.setAttribute('disabled', '');
+        t_input.value = line.timestamp;
+        t_input.onchange = (e) => {line.changeTimestamp(t_input.value);};
+
+        
+        let s_input = document.createElement("input");
+        s_input.setAttribute('type','text');
+        s_input.value = line.speaker;
+        s_input.onchange = (e) => {line.speaker = s_input.value;};
+
+        let l_input = document.createElement("input");
+        l_input.setAttribute('type','text');
+        l_input.value = line.line;
+        l_input.onchange = (e) => {line.line = l_input.value;};
+
+
+        c.appendChild(this.getControls());
+        i.appendChild(document.createTextNode(line.index));
+        t.appendChild(t_input);
+        s.appendChild(s_input);
+        l.appendChild(l_input);
+
+        r.appendChild(c);
+        r.appendChild(i);
+        r.appendChild(t);
+        r.appendChild(s);
+        r.appendChild(l);
+
+        return r;
+    },
+
+    getControls: function(){
+        //TO-DO: Make this more robust
+        var controls = document.createElement('div');
+        controls.style = this.CONTROLGRID;
+        var errorControls = document.createElement('div');
+        errorControls.innerHTML = "<a href='javascript:alert(\"okay\")'>ok</a> <a href='javascript:alert(\"no\")'>no</a>";
+        controls.append(errorControls);
+        var movingControls = document.createElement('div');
+        movingControls.innerHTML = "<a href='javascript:alert(\"up\")'>up</a> <a href='javascript:alert(\"down\")'>down</a>";
+        controls.append(movingControls);
+        return controls;
     }
 };
 
