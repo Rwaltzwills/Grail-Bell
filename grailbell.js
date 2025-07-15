@@ -5,8 +5,8 @@
 --- Speaker functionalities
 ---- Speaker find and replace
 ---- Identify speaker from imported SRT
----  Handle when scrolling needs to be paused
----- Scroll bar has been manually moved, or focus is in textbox
+--- Handle scrolling when textbox is in focus
+--- Make button to reactivate scrolling/show scrolling status
 -- Video
 --- Can skip to time by clicking on a line
 --- Backtrack / Skip 5s at a time with keyboard command
@@ -39,6 +39,10 @@ transcript = {
     scrolling: true,          //Is the containing div currently scrolling
     manually_scrolled: false, //Did the user manually scroll the div up
     transcript_div: null,     //Reference to the transcript div, will be set on init()
+    ignoreScrollEvent: false,
+    /** @type {?Number} */
+    lastScrolledPosition: null,
+    autoScrollTarget: null,
 
 
     CONTROLGRID: 'controlGrid',
@@ -159,6 +163,9 @@ transcript = {
 
     scrollTo: function (tr){
         tr.scrollIntoView({ behavior: "smooth"}); 
+        this.autoScrollTarget = tr;
+        this.lastScrolledPosition = tr.getBoundingClientRect().y;
+        debugLog("TR Goal ".concat(tr.scrollTop + tr.clientHeight));
         //TO-DO: Custom logic to scroll into center of table, not top.
     },
 
@@ -168,6 +175,7 @@ transcript = {
 
     //TO-DO: Make sure we sort current[] on load()
     handleVideoUpdate: function (time){
+        //TO-DO: There's a bug where it's deloading all the lines?
         for(let i = 0; i < this.new_lines.length;){
             if(time < parseInt(this.new_lines[i].startTime)) break;
 
@@ -176,11 +184,8 @@ transcript = {
             if(time < parseInt(this.new_lines[i].endTime)){
                 tr.classList.add(this.SYNCHIGHLIGHT);
                 if(this.scrolling){
+                    debugLog("Sending tr index ".concat(tr.dataset.index, " to scroll."))
                     this.scrollTo(tr);
-                    this.scrolling = true;
-                    //Should prevent autoscrolling deactivating itself, as
-                    //this.scrolling is set to false in the scroll event handler.
-                    //nvm this doesn't work TO-DO:
                 }
                 i++;
             }
@@ -194,8 +199,27 @@ transcript = {
     },
 
     handleScrolling: function (e){
-        console.log("Scrollbar position: ".concat(e.target.scrollTop + e.target.clientHeight, " Bottom position: ", e.target.scrollHeight));
-        this.scrolling = false;
+        if(this.autoScrollTarget){
+            let tr_y = this.autoScrollTarget.getBoundingClientRect().y;
+            let div_y = this.transcript_div.getBoundingClientRect().y;
+
+            let prev_dist = Math.abs(div_y - Math.abs(this.lastScrolledPosition));
+            let curr_dist = Math.abs(div_y - Math.abs(tr_y));
+
+            debugLog("Prev dist: ".concat(prev_dist, " Curr dist: ", curr_dist));
+
+
+            if(prev_dist < curr_dist){
+                this.scrolling = false;
+                this.autoScrollTarget = null;
+            }
+            this.lastScrolledPosition = tr_y;
+        }
+        //If there's a automatic scrolling tr set
+        //then determine if the scroll is moving towards or away from transcript-div y value
+        //if abs distance increases, interpret it as pausing autoscroll
+        //For resuming, just put a sync button somewhere
+
         //TO-DO: Handle manual scrolling
     },
 
