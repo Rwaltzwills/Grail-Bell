@@ -30,6 +30,7 @@ function afterLoad() {
     document.getElementById('JS').style = "";
     document.getElementById('noJS').style.display = "none";
     transcript.init();
+    video.init();
 }
 
 transcript = {
@@ -319,14 +320,76 @@ transcript = {
     }
 };
 
-video = {};
+video = {
+    video_elem: null, //Set during init()
+    video_div:  null, //Set during init()
+
+    init: function(){
+        this.video_elem = document.getElementById("Video");
+        this.video_div = document.getElementById("Video-area");
+        if(this.video_elem && this.video_div) return 1;
+        else return -1;
+    },
+
+    load: function (e, files){
+    },
+
+    pause: function (){
+
+    },
+
+    play: function (){
+
+    },
+
+    skipFive: function (){
+
+    },
+
+    rewindFive: function(){
+
+    },
+
+    increaseSpeed: function(){
+
+    },
+
+    decreaseSpeed: function(){
+
+    },
+};
 
 options = {};
 
 network = {};
 
+test = {
+    video: function(){
+        this.test(video.init, [], 1);
+        this.test(video.load, [], 1);
+        this.test(video.play, [], 1);
+        this.test(video.pause, [], 1);
+        this.test(video.play, [], 1);
+        this.test(video.skipFive, [], 1);
+    },
+
+    test: function(func, args, expected){
+        let ret = func(...args);
+        if(ret != expected){
+            debugLog(func.name.concat(" test bad. Return value: ",ret, " Expected: ", expected));
+        }
+        else{
+            debugLog(func.name.concat(" test sat."));
+        }
+    }
+};
+
 //Debug section
 var debug_mode = true;
+
+/*if(debug_mode){
+    test.video();
+}*/
 
 function debugLog(msg){
     if (debug_mode) console.log(msg);

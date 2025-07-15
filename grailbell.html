@@ -7,10 +7,25 @@
         Please enable Javascript to properly load this page.
     </div>
     <div id="JS" style="display:none;">
-        <div id="Video">
-
+        <div id="Video-area">
+            <div class="centerflex">
+                <video id="Video" poster="https://ak.picdn.net/shutterstock/videos/172/thumb/1.jpg?ip=x480"></video>
+            </div>
+        
+            <div class="centerflex">
+                <span id="Video-controls">
+                    <a href="javascript:video.play()">Pl</a>
+                    <a href="javascript:video.pause()">Pa</a>
+                    <a href="javascript:video.load()">Lo</a>
+                    <a href="javascript:video.skipFive()">-></a>
+                    <a href="javascript:video.rewindFive()"><-</a>
+                    <a href="javascript:video.increaseSpeed()">>></a>
+                    <a href="javascript:video.decreaseSpeed()"><<</a>
+                    <input style="width:4em" value="100%" disabled onchange="video.setSpeed(this.value)" />
+                </span>
+            </div>
         </div>
-        <div id="Transcript">
+        <div id="Transcript-area">
             <span>Note: Only handles SRT files currently</span>
            
             <div id= "Transcript-div" class="scrollable centerflex">

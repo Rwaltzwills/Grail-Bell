@@ -2,15 +2,21 @@
 
 }
 
-#Video {
 
-}
 
 #Transcript {
 
 }
 
 */
+#Video {
+    max-height:35vh;
+}
+
+#Video-area {
+    border: 1px solid black;
+}
+
 #Transcript-table {
     border-collapse: collapse;
 }
@@ -29,6 +35,7 @@ div.scrollable {
 div.centerflex {
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .controlGrid {
