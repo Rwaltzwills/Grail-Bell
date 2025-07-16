@@ -21,6 +21,8 @@
 - Video
 -- Skip to only errors
 -- Can edit keyboard commands
+-- Youtube
+-- Twitch
  */
 
 document.addEventListener("DOMContentLoaded", afterLoad);
@@ -99,7 +101,7 @@ transcript = {
         }
     },
 
-    timestamp_clicked: new Event('timestamp clicked'),
+    timestamp_clicked: new Event('timestamp click'),
 
     init: function () {
         this.transcript_div = document.getElementById("Transcript-div");
@@ -122,6 +124,11 @@ transcript = {
                     let r = this.lineToTR(this.current[ind]);
                     table.appendChild(r);
                 }
+
+                window.addEventListener("video time update", (e) => {
+                    debugLog("Video time updated to ".concat(e.detail.time));
+                    this.handleVideoUpdate(e.detail.time);
+                })
             })
 
         reader.readAsText(files[0]);
@@ -269,7 +276,10 @@ transcript = {
         t.dataset.startTime = line.startTime;
         t.dataset.endTime   = line.endTime;
 
-        t.onclick = (e) => {dispatchEvent(this.timestamp_clicked);};
+        t.onclick = (e) => {
+            dispatchEvent(new CustomEvent('timestamp click', 
+                        {detail: {time:e.target.dataset.startTime}}));
+        };
         //TO-DO: Add controls to each line and their associated actions
 
         
@@ -334,7 +344,7 @@ video = {
     uploadFileBox: function (){
         var fake_input = document.createElement('input');
         fake_input.type = "file";
-        fake_input.accept=".mp4";
+        fake_input.accept="video/*";
         fake_input.onchange = () => {this.load(fake_input.files[0])};
         
         this.video_elem.onclick = null;
@@ -357,14 +367,12 @@ video = {
 
                     this.video_elem.addEventListener("timeupdate", () =>{
                         dispatchEvent(new CustomEvent('video time update', {detail: {time:this.video_elem.currentTime}}));
-                        console.log("xx")
                     });
 
-                    /*window.addEventListener("video time update", (e) => {
-                        debugLog(e.detail.time)
-                    })*/
-
-                    
+                    window.addEventListener('timestamp click', (e) => {
+                        debugLog("Timestamp jumped to ".concat(e.detail.time));
+                        this.setTime(e.detail.time);
+                    })
                 }
             })
 
@@ -418,6 +426,17 @@ options = {};
 
 network = {};
 
+//Debug section
+var debug_mode = true;
+
+/*if(debug_mode){
+    test.video();
+}*/
+
+function debugLog(msg){
+    if (debug_mode) console.log(msg);
+}
+
 test = {
     video: function(){
         if(!video.video_elem.src) return "Please load a video first.";
@@ -441,15 +460,3 @@ test = {
         }
     }
 };
-
-//Debug section
-var debug_mode = true;
-
-/*if(debug_mode){
-    test.video();
-}*/
-
-function debugLog(msg){
-    if (debug_mode) console.log(msg);
-}
-
