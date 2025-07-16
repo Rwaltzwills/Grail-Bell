@@ -331,15 +331,56 @@ video = {
         else return -1;
     },
 
-    load: function (e, files){
+    uploadFileBox: function (){
+        var fake_input = document.createElement('input');
+        fake_input.type = "file";
+        fake_input.accept=".mp4";
+        fake_input.onchange = () => {this.load(fake_input.files[0])};
+        
+        this.video_elem.onclick = null;
+
+        fake_input.click();
+    },
+
+    load: function (file){
+        reader = new FileReader();
+        reader.addEventListener('load',
+            () => {
+                //Set selected video as src
+                this.video_elem.src = reader.result;
+                //Go straight to first frame and pause
+                //Then unload onplay to make sure you can actually progress in the video.
+                this.video_elem.load();
+                this.video_elem.onplay = () => {
+                    this.video_elem.pause();
+                    this.video_elem.onplay = "";
+
+                    this.video_elem.addEventListener("timeupdate", () =>{
+                        dispatchEvent(new CustomEvent('video time update', {detail: {time:this.video_elem.currentTime}}));
+                        console.log("xx")
+                    });
+
+                    window.addEventListener("video time update", (e) => {
+                        debugLog(e.detail.time)
+                    })
+
+                    
+                }
+            })
+
+        reader.readAsDataURL(file);
     },
 
     pause: function (){
+        this.video_elem.pause();
 
+        return this.video_elem.paused == 1;
     },
 
     play: function (){
+        this.video_elem.play();
 
+        return this.video_elem.paused == 0;
     },
 
     skipFive: function (){
@@ -357,6 +398,10 @@ video = {
     decreaseSpeed: function(){
 
     },
+
+    setSpeed: function(){
+
+    }
 };
 
 options = {};
@@ -366,7 +411,7 @@ network = {};
 test = {
     video: function(){
         this.test(video.init, [], 1);
-        this.test(video.load, [], 1);
+        this.test(video.uploadFileBox, [], 1);
         this.test(video.play, [], 1);
         this.test(video.pause, [], 1);
         this.test(video.play, [], 1);
