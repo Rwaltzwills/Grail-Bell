@@ -360,9 +360,9 @@ video = {
                         console.log("xx")
                     });
 
-                    window.addEventListener("video time update", (e) => {
+                    /*window.addEventListener("video time update", (e) => {
                         debugLog(e.detail.time)
-                    })
+                    })*/
 
                     
                 }
@@ -384,23 +384,33 @@ video = {
     },
 
     skipFive: function (){
-
+        this.setTime(this.video_elem.currentTime+5);
+        return this.video_elem.currentTime;
     },
 
     rewindFive: function(){
+        this.setTime(this.video_elem.currentTime-5);
+        return this.video_elem.currentTime;
+    },
 
+    setTime: function(time){
+        this.video_elem.currentTime = time;
+        return this.video_elem.currentTime;
     },
 
     increaseSpeed: function(){
-
+        this.setSpeed(this.video_elem.playbackRate + .1);
+        return this.video_elem.playbackRate;
     },
 
     decreaseSpeed: function(){
-
+        this.setSpeed(this.video_elem.playbackRate - .1);
+        return this.video_elem.playbackRate;
     },
 
-    setSpeed: function(){
-
+    setSpeed: function(speed){
+        this.video_elem.playbackRate = speed;
+        return this.video_elem.playbackRate;
     }
 };
 
@@ -410,12 +420,15 @@ network = {};
 
 test = {
     video: function(){
+        if(!video.video_elem.src) return "Please load a video first.";
+
         this.test(video.init, [], 1);
-        this.test(video.uploadFileBox, [], 1);
+
         this.test(video.play, [], 1);
         this.test(video.pause, [], 1);
-        this.test(video.play, [], 1);
-        this.test(video.skipFive, [], 1);
+        this.test(video.setTime, [video.video_elem.duration/2], video.video_elem.duration/2);
+        this.test(video.setSpeed, [.5], .5);
+  
     },
 
     test: function(func, args, expected){
