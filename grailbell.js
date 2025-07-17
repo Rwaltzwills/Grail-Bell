@@ -4,9 +4,6 @@
 -- Transcript
 --- Speaker functionalities
 ---- Speaker find and replace
---- Handle scrolling when textbox is in focus
--- Video
---- Backtrack / Skip 5s at a time with keyboard command
 ***
 - Nice to Have
 -- Transcript
@@ -30,6 +27,7 @@ function afterLoad() {
     document.getElementById('noJS').remove()
     transcript.init();
     video.init();
+    options.init();
 }
 
 transcript = {
@@ -97,8 +95,6 @@ transcript = {
             this.message = message + "Error occured while importing transcript file."
         }
     },
-
-    timestamp_clicked: new Event('timestamp click'),
 
     init: function () {
         this.transcript_div = document.getElementById("Transcript-div");
@@ -300,11 +296,13 @@ transcript = {
         s_input.setAttribute('type','text');
         s_input.value = line.speaker;
         s_input.onchange = (e) => {line.speaker = s_input.value;};
+        s_input.onfocus = (e) => {this.scrolling = false;};
 
         let l_input = document.createElement("input");
         l_input.setAttribute('type','text');
         l_input.value = line.line;
         l_input.onchange = (e) => {line.line = l_input.value;};
+        l_input.onfocus = (e) => {this.scrolling = false;};
 
 
         c.appendChild(this.getControls());
@@ -381,7 +379,20 @@ video = {
             window.addEventListener('timestamp click', (e) => {
                 debugLog("Timestamp jumped to ".concat(e.detail.time));
                 this.setTime(e.detail.time);
-            })
+            });
+
+            window.addEventListener('jumpback press', (e) => {
+                this.rewindFive()
+            });
+
+            window.addEventListener('jumpforward press', (e) => {
+                this.skipFive();
+            });
+
+            window.addEventListener('pause press', (e) => {
+                if(this.video_elem.paused) this.video_elem.play();
+                else this.video_elem.pause();
+            });
         }
             
 
@@ -430,7 +441,65 @@ video = {
     }
 };
 
-options = {};
+options = {
+    sidebar_elem: null, //set by init
+    button_elem: null, //set by init
+    key_controls: {},
+
+    jumpback_event: new Event("jumpback press"),
+    jumpforward_event: new Event("jumpforward press"),
+    pause_event: new Event("pause press"),
+
+    CONTROL_PREFIX: "Shift + ",
+
+    init: function(){
+        this.button_elem = document.getElementById("Options-button");
+        this.sidebar_elem = document.getElementById("Options-area");
+
+        window.addEventListener('keydown', this.handleKeyInput);
+
+        this.loadDefaultKeyControls();
+
+        if(this.sidebar_elem && this.button_elem) return 1;
+        return -1;
+    },
+
+    controlRebindClick: function (e){
+        let key = e.target.innerHTML.split(CONTROL_PREFIX)[1];
+        window.addEventListener('keydown', (event) => {
+            this.rebindControl(key, event.key);
+        }, {once: true});
+        window.removeEventListener('keydown', this.handleKeyInput);
+    },
+
+    rebindControl: function (key, new_key){
+        let target_event = this.key_controls[key];
+        this.key_controls[new_key] = target_event;
+        this.key_controls.remove(key);
+        window.addEventListener('keydown', this.handleKeyInput);
+    },
+
+    loadDefaultKeyControls: function (){
+        this.key_controls[" "] = this.pause_event;
+        this.key_controls["ArrowLeft"] = this.jumpback_event;
+        this.key_controls["ArrowRight"] = this.jumpforward_event;
+
+        return this.key_controls;
+    },
+
+    handleKeyInput: function (e) {
+        if(!e.shiftKey) return 0;
+        if(!(e.key in this.key_controls)) return 0;
+
+        dispatchEvent(this.key_controls[e.key]);
+        return 1;
+    },
+
+    slideBar: function (){
+        this.sidebar_elem.classList.toggle("options-out");
+        this.sidebar_elem.classList.toggle("options-in");
+    },
+};
 
 network = {};
 
@@ -456,6 +525,11 @@ test = {
         this.test(video.setTime, [video.video_elem.duration/2], video.video_elem.duration/2);
         this.test(video.setSpeed, [.5], .5);
   
+    },
+
+    options: function(){
+        this.test(options.init, [], 1);
+        
     },
 
     test: function(func, args, expected){

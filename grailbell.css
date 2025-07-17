@@ -9,6 +9,24 @@
 }
 
 */
+#Options-button {
+    justify-self: right;
+}
+
+#Options-area {
+    position:fixed;
+    background-color: lightblue;
+    transition: right 2s;
+}
+
+#Options-area.options-out{
+    right:-50px;
+}
+
+#Options-area.options-in{
+    right:0px;
+}
+
 #Video {
     max-height:35vh;
 }
