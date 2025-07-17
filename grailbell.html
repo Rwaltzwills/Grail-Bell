@@ -40,6 +40,9 @@
             <div class="centerflex">
                 <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
                 <button onclick="transcript.save()" id="Transcript-save">Save</button>
+
+                <label for="speaker_demarcation"> Speaker demarcating character (leave blank for no speaker) : </label>
+                <input style="width:1em;" id="speaker_demarcation" type="text" value=":" />
             </div>
          </div>
     </div>

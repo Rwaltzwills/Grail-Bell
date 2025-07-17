@@ -4,11 +4,9 @@
 -- Transcript
 --- Speaker functionalities
 ---- Speaker find and replace
----- Identify speaker from imported SRT
 --- Handle scrolling when textbox is in focus
 --- Make button to reactivate scrolling/show scrolling status
 -- Video
---- Can skip to time by clicking on a line
 --- Backtrack / Skip 5s at a time with keyboard command
 ***
 - Nice to Have
@@ -30,7 +28,7 @@ document.addEventListener("DOMContentLoaded", afterLoad);
 function afterLoad() {
     //Display JS enabled elements within page, hide warning
     document.getElementById('JS').style = "";
-    document.getElementById('noJS').style.display = "none";
+    document.getElementById('noJS').remove()
     transcript.init();
     video.init();
 }
@@ -43,21 +41,21 @@ transcript = {
     manually_scrolled: false, //Did the user manually scroll the div up
     transcript_div: null,     //Reference to the transcript div, will be set on init()
     ignoreScrollEvent: false,
-    /** @type {?Number} */
     lastScrolledPosition: null,
     autoScrollTarget: null,
+    speakerDemarcation: null, //Speaker demarcating character used at import
 
 
     CONTROLGRID: 'controlGrid',
     SYNCHIGHLIGHT: 'syncHighlight',
     
     Transcript_line: class {
-        constructor(index, timestamp, line){
+        constructor(index, timestamp, line, speaker){
             this.index = parseInt(index);
-            this.line = line;
-            this.speaker = ""; //TO-DO: Enable speaker tags later
+            this.line =  String(line).trim();
+            this.speaker = String(speaker).trim() ? speaker : ""; 
 
-            this.changeTimestamp(timestamp);
+            this.changeTimestamp(String(timestamp));
         }
 
         changeTimestamp(timestamp){
@@ -115,9 +113,9 @@ transcript = {
         reader = new FileReader();
         reader.addEventListener('load',
             () => {
-                this.importSRT(reader.result);
+                this.speakerDemarcation = document.getElementById("speaker_demarcation").value;
 
-                //TO-DO: Add event hook for video time updates
+                this.importSRT(reader.result);
 
                 table = document.getElementById('Transcript-table');
                 for (let ind = 0; ind < this.current.length; ind++){
@@ -157,13 +155,20 @@ transcript = {
             }
             var t = lines[1];
             var s = "";
+            let sp = null;
             var index = 2;
 
-            for(index = 2; lines[index] != "\r"; index++){
+            for(index = 2; lines[index].trim() != ""; index++){
                 s += lines[index];
             };
 
-            this.current.push(new this.Transcript_line(i,t,s));
+            if(this.speakerDemarcation && s.indexOf(this.speakerDemarcation) > -1){
+                sp = s.split(this.speakerDemarcation);
+                s = sp.slice(1,sp.length);
+                sp = sp[0];
+            }
+
+            this.current.push(new this.Transcript_line(i,t,s,sp));
             this.new_lines.push(this.current.at(-1));
             lines.splice(0,index+1);
         }
@@ -282,12 +287,14 @@ transcript = {
         };
         //TO-DO: Add controls to each line and their associated actions
 
-        
+        /*Code for timestamp input
+
         let t_input = document.createElement("input");
         t_input.setAttribute('type','text');
         t_input.setAttribute('disabled', '');
         t_input.value = line.timestamp;
         t_input.onchange = (e) => {line.changeTimestamp(t_input.value);};
+        */
 
         
         let s_input = document.createElement("input");
@@ -303,7 +310,7 @@ transcript = {
 
         c.appendChild(this.getControls());
         i.appendChild(document.createTextNode(line.index));
-        t.appendChild(t_input);
+        t.appendChild(document.createTextNode(line.timestamp));
         s.appendChild(s_input);
         l.appendChild(l_input);
 
@@ -353,30 +360,28 @@ video = {
     },
 
     load: function (file){
-        reader = new FileReader();
-        reader.addEventListener('load',
-            () => {
-                //Set selected video as src
-                this.video_elem.src = reader.result;
-                //Go straight to first frame and pause
-                //Then unload onplay to make sure you can actually progress in the video.
-                this.video_elem.load();
-                this.video_elem.onplay = () => {
-                    this.video_elem.pause();
-                    this.video_elem.onplay = "";
+  
+        //Set selected video as src
+        this.video_elem.src = URL.createObjectURL(file);
+        
+        //Go straight to first frame and pause
+        //Then unload onplay to make sure you can actually progress in the video.
+        this.video_elem.load();
+        this.video_elem.onplay = () => {
+            this.video_elem.pause();
+            this.video_elem.onplay = "";
 
-                    this.video_elem.addEventListener("timeupdate", () =>{
-                        dispatchEvent(new CustomEvent('video time update', {detail: {time:this.video_elem.currentTime}}));
-                    });
+            this.video_elem.addEventListener("timeupdate", () =>{
+                dispatchEvent(new CustomEvent('video time update', {detail: {time:this.video_elem.currentTime}}));
+            });
 
-                    window.addEventListener('timestamp click', (e) => {
-                        debugLog("Timestamp jumped to ".concat(e.detail.time));
-                        this.setTime(e.detail.time);
-                    })
-                }
+            window.addEventListener('timestamp click', (e) => {
+                debugLog("Timestamp jumped to ".concat(e.detail.time));
+                this.setTime(e.detail.time);
             })
+        }
+            
 
-        reader.readAsDataURL(file);
     },
 
     pause: function (){
