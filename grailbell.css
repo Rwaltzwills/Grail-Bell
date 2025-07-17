@@ -25,6 +25,11 @@
     border: 1px solid black;
 }
 
+#Transcript-table > thead > tr {
+    background-color: grey;
+    background: solid;
+}
+
 div.scrollable {
     max-height:55vh;
     overflow-y:auto;
@@ -45,4 +50,11 @@ div.centerflex {
 
 .syncHighlight {
     background-color: yellow;
+}
+
+.sticky {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  align-self: flex-start; 
 }

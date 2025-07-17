@@ -5,7 +5,6 @@
 --- Speaker functionalities
 ---- Speaker find and replace
 --- Handle scrolling when textbox is in focus
---- Make button to reactivate scrolling/show scrolling status
 -- Video
 --- Backtrack / Skip 5s at a time with keyboard command
 ***
@@ -334,6 +333,10 @@ transcript = {
         movingControls.innerHTML = "<a href='javascript:alert(\"up\")'>up</a> <a href='javascript:alert(\"down\")'>down</a>";
         controls.append(movingControls);
         return controls;
+    },
+
+    resetScroll: function(){
+        this.scrolling = true;
     }
 };
 
@@ -363,7 +366,7 @@ video = {
   
         //Set selected video as src
         this.video_elem.src = URL.createObjectURL(file);
-        
+
         //Go straight to first frame and pause
         //Then unload onplay to make sure you can actually progress in the video.
         this.video_elem.load();
