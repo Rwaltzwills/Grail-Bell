@@ -17,10 +17,11 @@
     position:fixed;
     background-color: lightblue;
     transition: right 2s;
+    padding-right: 5px;
 }
 
 #Options-area.options-out{
-    right:-50px;
+    right:-350px;
 }
 
 #Options-area.options-in{

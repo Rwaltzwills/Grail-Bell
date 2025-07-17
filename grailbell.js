@@ -460,6 +460,15 @@ options = {
 
         this.loadDefaultKeyControls();
 
+        for(var [k,v] of Object.entries(this.key_controls)) {
+            let control_div = document.getElementById("Options-controls");
+            let new_div = document.createElement('div');
+            new_div.append(document.createTextNode(String(v.type).concat(": ",this.CONTROL_PREFIX,k)));
+            this.sidebar_elem.append(new_div);
+        }
+
+        this.sidebar_elem
+
         if(this.sidebar_elem && this.button_elem) return 1;
         return -1;
     },
