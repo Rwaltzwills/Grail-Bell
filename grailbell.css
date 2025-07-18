@@ -18,6 +18,7 @@
     background-color: lightblue;
     transition: right 2s;
     padding-right: 5px;
+    max-width:350px;
 }
 
 #Options-area.options-out{

@@ -64,11 +64,10 @@ transcript = {
 
         _convertTime(time){
             /*Converts SRT text time into an int of seconds*/
-            //TO-DO: Bug here with calculations
-            var z = 0;
-            z = z + parseInt(time.slice(0,1))*60^2; //Add hours
-            z = z + parseInt(time.slice(3,4))*60;   //Add minutes
-            z = z + parseInt(time.slice(6,7));      //Add seconds
+            let z = 0;
+            z = z + parseInt(time.slice(0,2))*60*60; //Add hours
+            z = z + parseInt(time.slice(3,5))*60;   //Add minutes
+            z = z + parseInt(time.slice(6,8));      //Add seconds
             z = z + parseInt(time.slice(9))*.001    //Add milliseconds
             if(isNaN(z)){
                 throw new transcript.ImportError();
@@ -467,8 +466,6 @@ options = {
             this.sidebar_elem.append(new_div);
         }
 
-        this.sidebar_elem
-
         if(this.sidebar_elem && this.button_elem) return 1;
         return -1;
     },
@@ -486,6 +483,8 @@ options = {
         this.key_controls[new_key] = target_event;
         this.key_controls.remove(key);
         window.addEventListener('keydown', this.handleKeyInput);
+
+        return this.key_controls;
     },
 
     loadDefaultKeyControls: function (){
