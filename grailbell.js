@@ -169,11 +169,10 @@ transcript = {
     },
 
     scrollTo: function (tr){
-        tr.scrollIntoView({ behavior: "smooth"}); 
+        tr.scrollIntoView({block: "center", behavior: "smooth"}); 
         this.autoScrollTarget = tr;
         this.lastScrolledPosition = tr.getBoundingClientRect().y;
         debugLog("TR Goal ".concat(tr.scrollTop + tr.clientHeight));
-        //TO-DO: Custom logic to scroll into center of table, not top.
     },
 
     highlightRow: function (tr){
@@ -278,6 +277,11 @@ transcript = {
         t.onclick = (e) => {
             dispatchEvent(new CustomEvent('timestamp click', 
                         {detail: {time:e.target.dataset.startTime}}));
+                        this.old_lines = [];
+                        this.new_lines = this.current.slice(0,this.current.length+1);
+                        document.querySelectorAll('.'.concat(this.SYNCHIGHLIGHT)).forEach( (tr) => {
+                            tr.classList.remove(this.SYNCHIGHLIGHT);
+                        });
         };
         //TO-DO: Add controls to each line and their associated actions
 
