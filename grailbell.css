@@ -94,3 +94,12 @@ ul.no-bullets {
     padding: 0;
     margin: 0;
 }
+
+textarea {
+    resize:none;
+    field-sizing: content;
+    max-width: 45ch;
+    background-color:rgba(0, 0, 0, 0.25);
+    border: 1px black solid;
+    padding-right:1ch;
+}

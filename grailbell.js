@@ -292,13 +292,13 @@ const transcript = {
         */
 
         
-        let s_input = document.createElement("input");
+        let s_input = document.createElement("textarea");
         s_input.setAttribute('type','text');
         s_input.value = line.speaker;
         s_input.onchange = (e) => {line.speaker = s_input.value;};
         s_input.onfocus = (e) => {this.scrolling = false;};
 
-        let l_input = document.createElement("input");
+        let l_input = document.createElement("textarea");
         l_input.setAttribute('type','text');
         l_input.value = line.line;
         l_input.onchange = (e) => {line.line = l_input.value;};
