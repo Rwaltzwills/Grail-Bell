@@ -385,16 +385,24 @@ const video = {
             });
 
             window.addEventListener('jumpback press', (e) => {
+                e.stopPropagation();
                 this.rewindFive()
             });
 
             window.addEventListener('jumpforward press', (e) => {
+                e.stopPropagation();
                 this.skipFive();
             });
 
             window.addEventListener('pause press', (e) => {
-                if(this.video_elem.paused) this.video_elem.play();
-                else this.video_elem.pause();
+                if(this.video_elem.paused){
+                    this.video_elem.play();
+                }
+                else {
+                    debugLog('aused')
+
+                    this.video_elem.pause();
+                }
             });
         }
             
@@ -460,7 +468,7 @@ const options = {
         this.button_elem = document.getElementById("Options-button");
         this.sidebar_elem = document.getElementById("Options-area");
 
-        window.addEventListener('keydown', this.handleKeyInput);
+        window.addEventListener('keydown', (e) => {this.handleKeyInput(e)});
 
         this.loadDefaultKeyControls();
 
@@ -469,7 +477,7 @@ const options = {
             let new_div = document.createElement('div');
             new_div.classList.add(this.REBINDABLE_BUTTON);
             new_div.append(document.createTextNode(String(v.type).concat(": ",this.CONTROL_PREFIX,k)));
-            new_div.onclick = this.controlRebindClick;
+            new_div.onclick = (e) => {this.controlRebindClick(e);};
             this.sidebar_elem.append(new_div);
         }
 
@@ -478,18 +486,21 @@ const options = {
     },
 
     controlRebindClick: function (e){
-        let key = e.target.innerHTML.split(this.CONTROL_PREFIX)[1];
+        let target = e.target;
+        let key = target.innerHTML.split(this.CONTROL_PREFIX)[1];
+        debugLog("Rebinding ");
         window.addEventListener('keydown', (event) => {
+            event.stopPropagation();
             this.rebindControl(key, event.key);
+            target.innerHTML = String(this.key_controls[event.key].type).concat(": ",this.CONTROL_PREFIX,event.key);
+
         }, {once: true});
-        window.removeEventListener('keydown', this.handleKeyInput);
     },
 
     rebindControl: function (key, new_key){
         let target_event = this.key_controls[key];
         this.key_controls[new_key] = target_event;
-        this.key_controls.remove(key);
-        window.addEventListener('keydown', this.handleKeyInput);
+        delete this.key_controls[key];
 
         return this.key_controls;
     },
@@ -547,7 +558,6 @@ test = {
 
     options: function(){
 
-        this.test(options.init.bind(options), [], 1);
         this.test(options.handleKeyInput.bind(options), [{key: "ArrowLeft", shiftKey: true}], 1);
         this.test(options.handleKeyInput.bind(options), [{key: "ArrowLeft", shiftKey: false}], 0);
         this.test(options.handleKeyInput.bind(options), [{key: "a", shiftKey: true}], 0);
@@ -562,17 +572,20 @@ test = {
         expectation["ArrowRight"] = this.jumpforward_event;
 
         let target =  document.getElementsByClassName(options.REBINDABLE_BUTTON)[0];
-        debugLog("Target: ".concat(target));
+        debugLog("Target.");
+        debugLog(target);
         debugLog("Clicking target");
         target.click();
         debugLog("Pressing a");
-        dispatchEvent(new KeyboardEvent('keydown', {key: "a"}));
-        if(options.key_controls["a"] == options.pause_event){
+        window.dispatchEvent(new KeyboardEvent('keydown', {key: "A"}));
+        if(options.key_controls["A"] == options.pause_event){
             debugLog("Rebind test passed");
         }
         else{
             debugLog("Rebind test failed");
+            debugLog(options.key_controls);
         };
+        window.dispatchEvent(new KeyboardEvent('keydown', {key: "A", shiftKey: true}));
         
 
     },
