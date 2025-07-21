@@ -42,8 +42,12 @@
                         </tr>
                     </thead>
                 </table>
-                <button class="sticky" onclick="transcript.resetScroll()"> Reset scroll </button>
-                <button class="sticky" onclick="transcript.scrollToFirstError()"> Scroll to next error </button>
+                <div class="sticky">
+                    <ul class="no-bullets">
+                        <li><button class="sticky" onclick="transcript.resetScroll()"> Reset scroll </button> </li>
+                        <li><button class="sticky" onclick="transcript.scrollToFirstError()"> Scroll to next error </button> </li>
+                    </ul>
+                </div>
             </div>
             <div class="centerflex">
                 <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />

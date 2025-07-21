@@ -9,6 +9,10 @@
 }
 
 */
+body{
+    background: linear-gradient(#82e664, #64a7e6);
+}
+
 #Options-button {
     justify-self: right;
 }
@@ -39,6 +43,8 @@
 
 #Transcript-table {
     border-collapse: collapse;
+    background-color:hsla(120, 73%, 75%, 0.75);
+
 }
 
 #Transcript-table > tr > td {
@@ -81,4 +87,10 @@ div.centerflex {
 
 .errorLine {
     background-color: red;
+}
+
+ul.no-bullets {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
