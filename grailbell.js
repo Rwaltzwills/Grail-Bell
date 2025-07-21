@@ -30,7 +30,7 @@ function afterLoad() {
     options.init();
 }
 
-transcript = {
+const transcript = {
     current: [],              //current transcript
     old_lines: [],
     new_lines: [],
@@ -110,6 +110,8 @@ transcript = {
                 this.speakerDemarcation = document.getElementById("speaker_demarcation").value;
 
                 this.importSRT(reader.result);
+
+                
 
                 table = document.getElementById('Transcript-table');
                 for (let ind = 0; ind < this.current.length; ind++){
@@ -225,8 +227,6 @@ transcript = {
         //then determine if the scroll is moving towards or away from transcript-div y value
         //if abs distance increases, interpret it as pausing autoscroll
         //For resuming, just put a sync button somewhere
-
-        //TO-DO: Handle manual scrolling
     },
 
     addNewLine: function(tr_before){
@@ -341,7 +341,7 @@ transcript = {
     }
 };
 
-video = {
+const video = {
     video_elem: null, //Set during init()
     video_div:  null, //Set during init()
 
@@ -444,7 +444,7 @@ video = {
     }
 };
 
-options = {
+const options = {
     sidebar_elem: null, //set by init
     button_elem: null, //set by init
     key_controls: {},
@@ -454,6 +454,7 @@ options = {
     pause_event: new Event("pause press"),
 
     CONTROL_PREFIX: "Shift + ",
+    REBINDABLE_BUTTON: "REBINDABLE",
 
     init: function(){
         this.button_elem = document.getElementById("Options-button");
@@ -466,7 +467,9 @@ options = {
         for(var [k,v] of Object.entries(this.key_controls)) {
             let control_div = document.getElementById("Options-controls");
             let new_div = document.createElement('div');
+            new_div.classList.add(this.REBINDABLE_BUTTON);
             new_div.append(document.createTextNode(String(v.type).concat(": ",this.CONTROL_PREFIX,k)));
+            new_div.onclick = this.controlRebindClick;
             this.sidebar_elem.append(new_div);
         }
 
@@ -475,7 +478,7 @@ options = {
     },
 
     controlRebindClick: function (e){
-        let key = e.target.innerHTML.split(CONTROL_PREFIX)[1];
+        let key = e.target.innerHTML.split(this.CONTROL_PREFIX)[1];
         window.addEventListener('keydown', (event) => {
             this.rebindControl(key, event.key);
         }, {once: true});
@@ -492,6 +495,8 @@ options = {
     },
 
     loadDefaultKeyControls: function (){
+        //TO-DO: Load from cookie
+
         this.key_controls[" "] = this.pause_event;
         this.key_controls["ArrowLeft"] = this.jumpback_event;
         this.key_controls["ArrowRight"] = this.jumpforward_event;
@@ -500,6 +505,7 @@ options = {
     },
 
     handleKeyInput: function (e) {
+        console.log(e)
         if(!e.shiftKey) return 0;
         if(!(e.key in this.key_controls)) return 0;
 
@@ -530,18 +536,45 @@ test = {
     video: function(){
         if(!video.video_elem.src) return "Please load a video first.";
 
-        this.test(video.init, [], 1);
+        this.test(video.init.bind(video), [], 1);
 
-        this.test(video.play, [], 1);
-        this.test(video.pause, [], 1);
-        this.test(video.setTime, [video.video_elem.duration/2], video.video_elem.duration/2);
-        this.test(video.setSpeed, [.5], .5);
+        this.test(video.play.bind(video), [], 1);
+        this.test(video.pause.bind(video), [], 1);
+        this.test(video.setTime.bind(video), [video.video_elem.duration/2], video.video_elem.duration/2);
+        this.test(video.setSpeed.bind(video), [.5], .5);
   
     },
 
     options: function(){
-        this.test(options.init, [], 1);
+
+        this.test(options.init.bind(options), [], 1);
+        this.test(options.handleKeyInput.bind(options), [{key: "ArrowLeft", shiftKey: true}], 1);
+        this.test(options.handleKeyInput.bind(options), [{key: "ArrowLeft", shiftKey: false}], 0);
+        this.test(options.handleKeyInput.bind(options), [{key: "a", shiftKey: true}], 0);
+        this.test(options.handleKeyInput.bind(options), [{key: "a", shiftKey: false}], 0);
         
+        //Rebind test
+        debugLog("Rebind test");
+
+        let expectation = {};
+        expectation["a"] = this.pause_event;
+        expectation["ArrowLeft"] = this.jumpback_event;
+        expectation["ArrowRight"] = this.jumpforward_event;
+
+        let target =  document.getElementsByClassName(options.REBINDABLE_BUTTON)[0];
+        debugLog("Target: ".concat(target));
+        debugLog("Clicking target");
+        target.click();
+        debugLog("Pressing a");
+        dispatchEvent(new KeyboardEvent('keydown', {key: "a"}));
+        if(options.key_controls["a"] == options.pause_event){
+            debugLog("Rebind test passed");
+        }
+        else{
+            debugLog("Rebind test failed");
+        };
+        
+
     },
 
     test: function(func, args, expected){
