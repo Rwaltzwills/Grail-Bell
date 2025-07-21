@@ -7,14 +7,10 @@
 ***
 - Nice to Have
 -- Transcript
---- Can mark line as error
---- Can mark line as no error
 --- Can move indexes up and down
 --- Keeps diff
 --- Keeps list of running words that have been changed, alerts?
 - Video
--- Skip to only errors
--- Can edit keyboard commands
 -- Youtube
 -- Twitch
  */
@@ -45,6 +41,7 @@ const transcript = {
 
     CONTROLGRID: 'controlGrid',
     SYNCHIGHLIGHT: 'syncHighlight',
+    ERRORCLASS: 'errorLine',
     
     Transcript_line: class {
         constructor(index, timestamp, line, speaker){
@@ -328,7 +325,7 @@ const transcript = {
         var controls = document.createElement('div');
         controls.style = this.CONTROLGRID;
         var errorControls = document.createElement('div');
-        errorControls.innerHTML = "<a href='javascript:alert(\"okay\")'>ok</a> <a href='javascript:alert(\"no\")'>no</a>";
+        errorControls.innerHTML = "<a href='javascript:alert(\"okay\")'>ok</a> <a onclick='transcript.markError(this.parentNode.parentNode.parentNode.parentNode)'>no</a>";
         controls.append(errorControls);
         var movingControls = document.createElement('div');
         movingControls.innerHTML = "<a href='javascript:alert(\"up\")'>up</a> <a href='javascript:alert(\"down\")'>down</a>";
@@ -338,7 +335,17 @@ const transcript = {
 
     resetScroll: function(){
         this.scrolling = true;
-    }
+    },
+
+    markError: function(tr){
+        tr.classList.toggle(this.ERRORCLASS);
+    },
+
+    scrollToFirstError: function(){
+        let tr = document.querySelector('.'.concat(this.ERRORCLASS));
+        let time_td = tr.children[2];
+        time_td.click();
+    },
 };
 
 const video = {
@@ -395,6 +402,7 @@ const video = {
             });
 
             window.addEventListener('pause press', (e) => {
+                e.stopPropagation();
                 if(this.video_elem.paused){
                     this.video_elem.play();
                 }

@@ -78,3 +78,7 @@ div.centerflex {
   top: 0;
   align-self: flex-start; 
 }
+
+.errorLine {
+    background-color: red;
+}
