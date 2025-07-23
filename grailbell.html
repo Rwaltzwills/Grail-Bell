@@ -11,7 +11,8 @@
             <button onclick="options.slideBar()"> Options! </button>
         </div>
         <div id="Options-area" class="options-out">
-           
+            <label for="speaker_demarcation"> Speaker demarcating character (leave blank for no speaker) : </label>
+                <input style="width:1em;" id="speaker_demarcation" type="text" value=":" />
         </div>
         <div id="Video-area">
             <div class="centerflex">
@@ -27,7 +28,7 @@
                     <a href="javascript:video.rewindFive()"><-</a>
                     <a href="javascript:video.increaseSpeed()">>></a>
                     <a href="javascript:video.decreaseSpeed()"><<</a>
-                    <input style="width:4em" value="100%" disabled onchange="video.setSpeed(this.value)" />
+                    <input id="Video-speed" style="width:4em" value="100%" disabled onchange="video.setSpeed(this.value)" />
                 </span>
             </div>
         </div>
@@ -60,9 +61,6 @@
             <div class="centerflex">
                 <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
                 <button onclick="transcript.save()" id="Transcript-save">Save</button>
-
-                <label for="speaker_demarcation"> Speaker demarcating character (leave blank for no speaker) : </label>
-                <input style="width:1em;" id="speaker_demarcation" type="text" value=":" />
             </div>
          </div>
     </div>

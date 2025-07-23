@@ -19,14 +19,14 @@ body{
 
 #Options-area {
     position:fixed;
-    background-color: lightblue;
-    transition: right 2s;
+    background-color: hsla(120, 24%, 49%, 0.75);
+    transition: right 1s;
     padding-right: 5px;
     max-width:350px;
 }
 
 #Options-area.options-out{
-    right:-350px;
+    right:var(--options-hidden-offset);
 }
 
 #Options-area.options-in{

@@ -553,6 +553,7 @@ const video = {
 
     setSpeed: function(speed){
         this.video_elem.playbackRate = speed;
+        document.getElementById('Video-speed').value = "".concat(this.video_elem.playbackRate*100,"%");
         return this.video_elem.playbackRate;
     }
 };
@@ -585,6 +586,8 @@ const options = {
             new_div.onclick = (e) => {this.controlRebindClick(e);};
             this.sidebar_elem.append(new_div);
         }
+
+        this.sidebar_elem.style.setProperty('--options-hidden-offset', -1*this.sidebar_elem.clientWidth);
 
         if(this.sidebar_elem && this.button_elem) return 1;
         return -1;
