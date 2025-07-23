@@ -33,22 +33,30 @@
         </div>
         <div id="Transcript-area">
             <span>Note: Only handles SRT files currently</span>
-           
+           <div class="centerflex">
             <div id= "Transcript-div" class="scrollable centerflex">
                 <table id="Transcript-table">
                     <thead>
                         <tr class="sticky">
-                            <th <!-- Controls --></th><th <!-- Index --></th></th><th>Time</th><th>Speaker</th><th <!-- Subtitle line--></th>
+                            <th <!-- Controls --></th><th <!-- Index --></th></th><th>Time</th><th>Speaker</th><th> Line </th>
                         </tr>
                     </thead>
                 </table>
-                <div class="sticky">
-                    <ul class="no-bullets">
-                        <li><button class="sticky" onclick="transcript.resetScroll()"> Reset scroll </button> </li>
-                        <li><button class="sticky" onclick="transcript.scrollToFirstError()"> Scroll to next error </button> </li>
-                    </ul>
-                </div>
+
             </div>
+                            <div class="sticky">
+                    <ul class="no-bullets">
+                        <li><button onclick="transcript.resetScroll()"> Reset scroll </button> </li>
+                        <li><button onclick="transcript.scrollToFirstError()"> Scroll to next error </button> </li>
+                        <li><div id="findAndReplaceContainer"><button onclick="transcript.toggleFindAndReplaceArea()"> Find / Replace </button> 
+                                <div id="findAndReplaceArea"> <button onclick="transcript.findButton()"> Find </button> <input id="findAndReplaceFindInput"> </input> <br />
+                                                              <button onclick="transcript.replaceButton()"> Replace </button> <input id='findAndReplaceReplaceInput'> </input> <br /> 
+                                                              <div id="findAndReplaceResults"> </div>
+                                                        </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div></div>
             <div class="centerflex">
                 <input type="file" accept=".srt" id="Transcript-load" onchange="transcript.load(this, this.files)" />
                 <button onclick="transcript.save()" id="Transcript-save">Save</button>

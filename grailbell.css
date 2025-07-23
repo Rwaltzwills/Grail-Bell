@@ -56,11 +56,24 @@ body{
     background: solid;
 }
 
+#Transcript-div{
+    width:fit-content;
+    justify-self:center;
+    direction:rtl;
+    scrollbar-color:rgba(0, 0, 0, .5) hsla(120, 24%, 49%, 0.75);
+}
+
+#Transcript-table > thead > tr > th{
+    background-color: hsla(120, 24%, 49%, 0.75);
+}
+
+#Transcript-div > * {
+    direction:ltr;
+}
+
 div.scrollable {
     max-height:55vh;
     overflow-y:auto;
-    border: 1px solid black;
-
 }
 
 div.centerflex {
@@ -98,8 +111,23 @@ ul.no-bullets {
 textarea {
     resize:none;
     field-sizing: content;
+    /*TO-DO: Convert field-sizing to JS*/
     max-width: 45ch;
     background-color:rgba(0, 0, 0, 0.25);
     border: 1px black solid;
     padding-right:1ch;
+}
+
+#findAndReplaceArea {
+    display:none;
+    position:absolute;
+    left:1ch;
+    border:1px solid black;
+    background-color:rgba(255, 255, 255, 0.5);
+    width:45ch;
+    overflow-y:auto;
+}
+
+#findAndReplaceContainer {
+    position:relative;
 }

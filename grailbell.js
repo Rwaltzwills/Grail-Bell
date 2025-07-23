@@ -47,7 +47,7 @@ const transcript = {
         constructor(index, timestamp, line, speaker){
             this.index = parseInt(index);
             this.line =  String(line).trim();
-            this.speaker = String(speaker).trim() ? speaker : ""; 
+            this.speaker = speaker ? String(speaker).trim() : ""; 
 
             this.changeTimestamp(String(timestamp));
         }
@@ -346,6 +346,103 @@ const transcript = {
         let time_td = tr.children[2];
         time_td.click();
     },
+
+    toggleFindAndReplaceArea: function(){
+        let div = document.getElementById("findAndReplaceArea");
+        div.style.display = div.style.display == "block" ? "none" : "block";
+        document.getElementById('findAndReplaceResults').innerHTML = "";
+
+        let max_height = this.transcript_div.getBoundingClientRect().bottom - div.getBoundingClientRect().y;
+
+        div.style.maxHeight = max_height;
+    },
+
+    findFunction: function(target){
+        if(target.length == 0) return;
+
+        let ret = [];
+        for (const tr of this.current){
+            if (tr.line.includes(target) || tr.speaker.includes(target)){
+                ret.push(tr);
+            }
+        }
+        console.log(ret);
+        console.log('flag')
+        return ret;
+    },
+
+    findButton: function(){
+        let target = document.getElementById('findAndReplaceFindInput').value;
+        document.getElementById('findAndReplaceResults').innerHTML = "";    
+
+        let results = this.findFunction(target);
+        let div = document.getElementById("findAndReplaceResults");
+        let ul = document.createElement("ul");
+        for (const tr of results){
+            let li = document.createElement("li");
+            li.append(tr.speaker.concat(": ",tr.line));
+            ul.append(li);
+        }
+        div.append(ul);
+    },
+
+    replaceFunction: function(target, replacement){
+        if(target.length == 0 || replacement.length == 0) return;
+
+        let ret = [];
+        for (const tr of this.current){
+            if (tr.line.toUpperCase().includes(target.toUpperCase()) || tr.speaker.toUpperCase().includes(target.toUpperCase())){
+                tr.line = tr.line.replaceAll(target, replacement);
+                tr.line = tr.line.replaceAll(target.toUpperCase(), replacement.toUpperCase());
+                tr.speaker = tr.speaker.replaceAll(target, replacement);
+                tr.speaker = tr.speaker.replaceAll(target.toUpperCase(), replacement.toUpperCase());
+                ret.push(tr);
+            }
+        }
+        return ret;
+    },
+
+    replaceButton: function(){
+        let target = document.getElementById('findAndReplaceFindInput').value;
+        let replacement = document.getElementById('findAndReplaceReplaceInput').value;
+        document.getElementById('findAndReplaceResults').innerHTML = "";
+
+        let results = this.replaceFunction(target, replacement);
+        let div = document.getElementById("findAndReplaceResults");
+        let ul = document.createElement("ul");
+        for (const tr of results){
+            let li = document.createElement("li");
+            li.append(tr.speaker.concat(": ",tr.line));
+            ul.append(li);
+        }
+        div.append(ul);
+        this.updateTableContents();
+    },
+
+    updateTableContents: function(){
+        for(const tr of document.querySelectorAll('tr[data-index]')){
+            let children = tr.children;
+
+            line = this.current[parseInt(tr.dataset.index) - 1];
+
+            let s_input = document.createElement("textarea");
+            s_input.setAttribute('type','text');
+            s_input.value = line.speaker;
+            s_input.onchange = (e) => {line.speaker = s_input.value;};
+            s_input.onfocus = (e) => {this.scrolling = false;};
+
+            let l_input = document.createElement("textarea");
+            l_input.setAttribute('type','text');
+            l_input.value = line.line;
+            l_input.onchange = (e) => {line.line = l_input.value;};
+            l_input.onfocus = (e) => {this.scrolling = false;};
+
+            children[3].innerHTML = "";
+            children[3].append(s_input); //Speaker
+            children[4].innerHTML = "";
+            children[4].append(l_input); //Line
+        }
+    }
 };
 
 const video = {
