@@ -74,7 +74,7 @@ const transcript = {
 
         produceSRTPassage(){
             let s = "";
-            s += this.index.trimEnd() + "\r";
+            s += this.index.toString().trimEnd() + "\r";
             s += this.timestamp.trimEnd() + "\r";
             s += this.speaker + this.line.trimEnd() + "\r"; 
             s += "\r";
@@ -390,6 +390,7 @@ const transcript = {
         if(target.length == 0 || replacement.length == 0) return;
 
         let ret = [];
+        //TO-DO: Find and replace case sensitivity is bugged on words longer than one character.
         for (const tr of this.current){
             if (tr.line.toUpperCase().includes(target.toUpperCase()) || tr.speaker.toUpperCase().includes(target.toUpperCase())){
                 tr.line = tr.line.replaceAll(target, replacement);
